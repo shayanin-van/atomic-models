@@ -28,29 +28,48 @@
         aspect-ratio: 1;
         margin-bottom: 20px;
       }
+      button {
+        border-radius: 8px;
+        border: 1px solid transparent;
+        padding: 0.3em 0.4em;
+        font-size: 1em;
+        font-weight: 500;
+        font-family: inherit;
+        background-color: #cc785c;
+        color: #ffffff;
+        cursor: pointer;
+        transition: border-color 0.25s;
+        margin: 4px;
+      }
+      button:hover {
+        border-color: #ffffff;
+      }
+      button:focus,
+      button:focus-visible {
+        outline: 8px #ffffff auto -webkit-focus-ring-color;
+      }
+      button:disabled {
+        background-color: #ccc;
+        color: #666;
+        opacity: 0.7;
+      }
     </style>
   </head>
   <body>
     <canvas id="myCanvas"></canvas>
+    <label>กระตุ้นด้วยโฟตอนที่มีพลังงาน</label>
     <div
       style="
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         max-width: 260px;
         text-align: center;
       "
     >
-      <label for="hf">xxxxx</label>
-      <input
-        type="range"
-        id="hf"
-        name="hf"
-        min="1.6"
-        max="3.4"
-        value="2.5"
-        step="0.3"
-      />
+      <button type="button" id="p10eV">10 eV</button>
+      <button type="button" id="p11eV">11 eV</button>
+      <button type="button" id="p12eV">12 eV</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
@@ -95,18 +114,102 @@
       function drawProton() {
         ctx.fillStyle = "#aec7e8";
         ctx.strokeStyle = "#1f77b4";
-        ctx.lineWidth = 0.1 * ppcm;
+        ctx.lineWidth = 0.06 * ppcm;
         ctx.beginPath();
-        ctx.arc(xCon(0) * ppcm, yCon(0) * ppcm, 0.5 * ppcm, 0, 2 * Math.PI);
+        ctx.arc(xCon(0) * ppcm, yCon(0) * ppcm, 0.3 * ppcm, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
 
         // text
         ctx.fillStyle = "#1f77b4";
-        ctx.font = 0.9 * ppcm + "px mitr";
+        ctx.font = 0.5 * ppcm + "px mitr";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("p", xCon(0) * ppcm, yCon(0.06) * ppcm);
+      }
+
+      // orbit1 BG
+      function drawBG() {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(
+          xCon(0) * ppcm,
+          yCon(0) * ppcm,
+          orbits.r1 * ppcm,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+      }
+
+      // orbits
+      class Orbits {
+        constructor() {
+          this.r1 = 1.5 / 2;
+          this.r2 = 4 / 2;
+          this.r3 = 9 / 2;
+        }
+
+        drawOrbits() {
+          ctx.strokeStyle = "#888888";
+          ctx.lineWidth = 0.06 * ppcm;
+          ctx.setLineDash([10, 12]);
+          // r1
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r1 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          // r2
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r2 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          // r3
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r3 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        drawGaps() {
+          drawEnergyGap(
+            this.r1 * Math.cos(Math.PI / 3.2),
+            this.r1 * Math.sin(Math.PI / 3.2),
+            "#888888",
+            Math.PI / 3.2,
+            this.r2 - this.r1,
+            "10 eV"
+          );
+          drawEnergyGap(
+            this.r1 * Math.cos(Math.PI / 6),
+            this.r1 * Math.sin(Math.PI / 6),
+            "#888888",
+            Math.PI / 6,
+            this.r3 - this.r1,
+            "12 eV"
+          );
+        }
+
+        draw() {
+          this.drawGaps();
+          this.drawOrbits();
+        }
       }
 
       // electron class
@@ -114,7 +217,9 @@
         constructor(x, y) {
           this.x = x;
           this.y = y;
-          this.radius = 0.5;
+          this.radius = 0.2;
+
+          this.n = 1; // quantum number
         }
 
         createPath() {
@@ -131,20 +236,37 @@
         draw() {
           ctx.fillStyle = "#f5b9b0";
           ctx.strokeStyle = "#d47263";
-          ctx.lineWidth = 0.1 * ppcm;
+          ctx.lineWidth = 0.04 * ppcm;
           this.createPath();
           ctx.fill();
           ctx.stroke();
 
           // text
           ctx.fillStyle = "#d47263";
-          ctx.font = 1 * ppcm + "px mitr";
+          ctx.font = 0.5 * ppcm + "px mitr";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText("e", xCon(this.x) * ppcm, yCon(this.y) * ppcm);
         }
 
         update() {
+          if (this.n == 1) {
+            this.r = orbits.r1;
+            this.v = 1 / this.n;
+          } else if (this.n == 2) {
+            this.r = orbits.r2;
+            this.v = 1 / this.n;
+          } else if (this.n == 3) {
+            this.r = orbits.r3;
+            this.v = 1 / this.n;
+          }
+          // velo
+          let omega = this.v / this.r;
+          let omegaMultiplier = 4;
+          // orbiting
+          this.x = this.r * Math.cos(omegaMultiplier * omega * currentTime);
+          this.y = this.r * Math.sin(omegaMultiplier * omega * currentTime);
+
           // draw
           this.draw();
         }
@@ -153,20 +275,21 @@
       // photon class
       class Photon {
         constructor() {
-          this.x = 6;
-          this.y = 3.4;
+          this.x = -6;
+          this.y = 6;
+
+          this.eV = 10;
         }
 
         drawPhoton() {
-          ctx.fillStyle =
-            eVToColor(this.hfAtFire) + map01ToHex(this.photonOpacity - 0.5);
-          ctx.strokeStyle = "#222222" + map01ToHex(this.photonOpacity);
+          ctx.fillStyle = "#c5b0d5";
+          ctx.strokeStyle = "#222222";
           ctx.lineWidth = 0.05 * ppcm;
           ctx.beginPath();
           ctx.arc(
-            xCon(this.photonX) * ppcm,
-            yCon(this.photonY) * ppcm,
-            this.photonRadius * ppcm,
+            xCon(this.x) * ppcm,
+            yCon(this.y) * ppcm,
+            0.4 * ppcm,
             0,
             2 * Math.PI
           );
@@ -174,21 +297,13 @@
           ctx.stroke();
 
           // text
-          ctx.fillStyle = "#222222" + map01ToHex(this.photonOpacity);
+          ctx.fillStyle = "#222222";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.font = 0.5 * ppcm + "px mitr";
-          ctx.fillText(
-            this.hfAtFire,
-            xCon(this.photonX) * ppcm,
-            yCon(this.photonY + 0.1) * ppcm
-          );
-          ctx.font = 0.3 * ppcm + "px mitr";
-          ctx.fillText(
-            "eV",
-            xCon(this.photonX) * ppcm,
-            yCon(this.photonY - 0.25) * ppcm
-          );
+          ctx.font = 0.36 * ppcm + "px mitr";
+          ctx.fillText(this.eV, xCon(this.x) * ppcm, yCon(this.y + 0.1) * ppcm);
+          ctx.font = 0.24 * ppcm + "px mitr";
+          ctx.fillText("eV", xCon(this.x) * ppcm, yCon(this.y - 0.25) * ppcm);
         }
 
         update() {
@@ -199,6 +314,55 @@
       // class instanciation
       const electron = new Electron(0, 0);
       const photon = new Photon();
+      const orbits = new Orbits();
+
+      // events
+      document.getElementById("p10eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 10;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 2, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
+      document.getElementById("p11eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 11;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 1 });
+        gsap.delayedCall(2, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 2 });
+      });
+      document.getElementById("p12eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 12;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 3, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
 
       // animation loop
       function animFrame() {
@@ -207,6 +371,7 @@
       }
 
       function init() {
+        gsap.ticker.lagSmoothing(false);
         animFrame();
       }
 
@@ -228,19 +393,21 @@
 
         // draw functions
         photon.update();
+        drawBG();
+        orbits.draw();
         electron.update();
         drawProton();
       }
 
-      function drawEnergyGap(xStart, yStart, color, angle, length) {
-        let arrowSize = 0.5;
+      function drawEnergyGap(xStart, yStart, color, angle, length, text) {
+        let arrowSize = 0.3;
         if (length < arrowSize) {
           arrowSize = length;
         }
 
         // line
         ctx.strokeStyle = color;
-        ctx.lineWidth = 0.1 * ppcm;
+        ctx.lineWidth = 0.05 * ppcm;
         ctx.beginPath();
         ctx.moveTo(xCon(xStart) * ppcm, yCon(yStart) * ppcm);
         ctx.lineTo(
@@ -314,125 +481,25 @@
         if (length < 1) {
           return;
         }
-        ctx.font = 0.4 * ppcm + "px mitr";
+        ctx.font = 0.3 * ppcm + "px mitr";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.save();
         ctx.translate(
           xCon(
             xStart +
-              0.4 * length * Math.cos(angle) +
-              0.5 * Math.cos(angle + Math.PI / 2)
+              0.5 * length * Math.cos(angle) +
+              0.34 * Math.cos(angle + Math.PI / 2)
           ) * ppcm,
           yCon(
             yStart +
-              0.4 * length * Math.sin(angle) +
-              0.5 * Math.sin(angle + Math.PI / 2)
+              0.5 * length * Math.sin(angle) +
+              0.34 * Math.sin(angle + Math.PI / 2)
           ) * ppcm
         );
-        ctx.rotate(angle);
-        ctx.fillText(length.toFixed(1) + " eV", 0, 0);
+        ctx.rotate(-angle);
+        ctx.fillText(text, 0, 0);
         ctx.restore();
-      }
-
-      function map01ToHex(value) {
-        // Ensure the value is within the 0-1 range
-        if (value < 0) value = 0;
-        if (value > 1) value = 1;
-
-        // Scale to 0-255 and round
-        const scaledValue = Math.round(value * 255);
-
-        // Convert to hexadecimal string
-        let hex = scaledValue.toString(16);
-
-        // Pad with a leading zero if necessary
-        if (hex.length === 1) {
-          hex = "0" + hex;
-        }
-
-        return hex;
-      }
-
-      function eVToColor(eV) {
-        const THz =
-          ((eV - document.getElementById("hf").min) /
-            (document.getElementById("hf").max -
-              document.getElementById("hf").min)) *
-            (790 - 430) +
-          430;
-
-        let r = 0,
-          g = 0,
-          b = 0;
-        let name = "Invisible";
-
-        // The mapping is based on wavelength, so we first convert frequency to wavelength.
-        // c = 3e8 m/s (speed of light)
-        // frequency is in THz (10^12 Hz)
-        // wavelength (nm) = (3e8 m/s) / (frequency * 1e12 Hz) * 1e9 nm/m
-        // wavelength (nm) = 300,000 / frequency (in THz)
-        const wavelength = 300000 / THz;
-
-        if (wavelength >= 370 && wavelength < 440) {
-          // Violet
-          r = -(wavelength - 440) / (440 - 370);
-          g = 0;
-          b = 1;
-          name = "Violet";
-        } else if (wavelength >= 440 && wavelength < 490) {
-          // Blue
-          r = 0;
-          g = (wavelength - 440) / (490 - 440);
-          b = 1;
-          name = "Blue";
-        } else if (wavelength >= 490 && wavelength < 510) {
-          // Cyan
-          r = 0;
-          g = 1;
-          b = -(wavelength - 510) / (510 - 490);
-          name = "Cyan";
-        } else if (wavelength >= 510 && wavelength < 580) {
-          // Green
-          r = (wavelength - 510) / (580 - 510);
-          g = 1;
-          b = 0;
-          name = "Green";
-        } else if (wavelength >= 580 && wavelength < 620) {
-          // Yellow
-          r = 1;
-          g = -(wavelength - 620) / (620 - 580);
-          b = 0;
-          name = "Yellow";
-        } else if (wavelength >= 620 && wavelength < 750) {
-          // Red
-          r = 1;
-          g = 0;
-          b = 0;
-          name = "Red";
-        }
-
-        // For frequencies outside the visible spectrum (infrared, ultraviolet)
-        if (wavelength < 370 || wavelength > 750) {
-          return { hex: "#000000", name: "Invisible (UV/Infrared)" };
-        }
-
-        // Intensity falls off near the edges of the spectrum
-        let factor = 1.0;
-        if (wavelength >= 370 && wavelength < 420) {
-          factor = 0.3 + (0.7 * (wavelength - 370)) / (420 - 370);
-        } else if (wavelength >= 700 && wavelength < 750) {
-          factor = 0.3 + (0.7 * (750 - wavelength)) / (750 - 700);
-        }
-
-        const finalR = Math.round(255 * r * factor);
-        const finalG = Math.round(255 * g * factor);
-        const finalB = Math.round(255 * b * factor);
-
-        const toHex = (c) => ("0" + c.toString(16)).slice(-2);
-        const hex = `#${toHex(finalR)}${toHex(finalG)}${toHex(finalB)}`;
-
-        return hex;
       }
     </script>
   </body>

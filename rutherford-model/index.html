@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Mitr"
+    />
+    <title>Atomic Models</title>
+    <style>
+      body {
+        font-family: "Mitr", sans-serif;
+        color: rgb(114, 114, 114);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      #myCanvas {
+        border: 0px;
+        touch-action: none;
+        background-color: #ffffff;
+        width: 90%;
+        max-width: 360px;
+        aspect-ratio: 1;
+        margin-bottom: 20px;
+      }
+      button {
+        border-radius: 8px;
+        border: 1px solid transparent;
+        padding: 0.3em 0.4em;
+        font-size: 1em;
+        font-weight: 500;
+        font-family: inherit;
+        background-color: #cc785c;
+        color: #ffffff;
+        cursor: pointer;
+        transition: border-color 0.25s;
+        margin: 4px;
+      }
+      button:hover {
+        border-color: #ffffff;
+      }
+      button:focus,
+      button:focus-visible {
+        outline: 8px #ffffff auto -webkit-focus-ring-color;
+      }
+      button:disabled {
+        background-color: #ccc;
+        color: #666;
+        opacity: 0.7;
+      }
+
+      input[type="range"] {
+        accent-color: #cc785c;
+        background: transparent; /* Remove default background */
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas"></canvas>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: 260px;
+        text-align: center;
+      "
+    >
+      <button type="button" id="play">▶</button>
+      <input type="range" id="slider" 
+        min="0"
+        max="5"
+        value="0"
+        step="0.01"></input>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script>
+      // get the canvas element
+      const canvas = document.getElementById("myCanvas");
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      // get the 2D rendering context
+      const ctx = canvas.getContext("2d");
+
+      // sizing
+      const phyWidth = 10; // in cm.
+      const phyHeight = 10; // in cm.
+      let ppcm = canvas.width / phyWidth; // ppcm = pixel per centimeter
+
+      // physics
+
+      // time
+      const startTime = Date.now() / 1000;
+      let prevTime = startTime;
+      let currentTime;
+      let deltaTime;
+      let simTime = 0;
+
+      // coordinate converting function from physical to canvas space
+      function xCon(x) {
+        return x + 5;
+      }
+      function yCon(y) {
+        return -y + 5;
+      }
+
+      // resize event
+      window.addEventListener("resize", () => {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        ppcm = canvas.width / phyWidth; // ppcm = pixel per centimeter
+      });
+
+      // proton
+      function drawProton() {
+        ctx.fillStyle = "#aec7e8";
+        ctx.strokeStyle = "#1f77b4";
+        ctx.lineWidth = 0.08 * ppcm;
+        ctx.beginPath();
+        ctx.arc(xCon(0) * ppcm, yCon(0) * ppcm, 0.4 * ppcm, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        // text
+        ctx.fillStyle = "#1f77b4";
+        ctx.font = 0.6 * ppcm + "px mitr";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("p", xCon(0) * ppcm, yCon(0.06) * ppcm);
+      }
+
+      // orbits
+      class Orbits {
+        constructor() {
+          this.r = 4;
+        }
+
+        drawOrbits() {
+          ctx.strokeStyle = "#888888";
+          ctx.lineWidth = 0.06 * ppcm;
+          ctx.setLineDash([10, 12]);
+          // r3
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        draw() {
+          this.drawOrbits();
+        }
+      }
+
+      // electron class
+      class Electron {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.radius = 0.3;
+        }
+
+        createPath() {
+          ctx.beginPath();
+          ctx.arc(
+            xCon(this.x) * ppcm,
+            yCon(this.y) * ppcm,
+            this.radius * ppcm,
+            0,
+            2 * Math.PI
+          );
+        }
+
+        draw() {
+          ctx.fillStyle = "#f5b9b0";
+          ctx.strokeStyle = "#d47263";
+          ctx.lineWidth = 0.06 * ppcm;
+          this.createPath();
+          ctx.fill();
+          ctx.stroke();
+
+          // text
+          ctx.fillStyle = "#d47263";
+          ctx.font = 0.6 * ppcm + "px mitr";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("e", xCon(this.x) * ppcm, yCon(this.y) * ppcm);
+        }
+
+        update() {
+          // velo
+          let omegaMultiplier = 4;
+          // radius
+          this.r = orbits.r * ((5 - simTime)/(5));
+          let omega = 1 / this.r;
+          // orbiting
+          this.x = this.r * Math.cos(omegaMultiplier*omega*simTime)
+          this.y = this.r * Math.sin(omegaMultiplier*omega*simTime)
+
+          // draw
+          this.draw();
+        }
+      }
+
+      // class instanciation
+      const electron = new Electron(4*Math.cos(2), 4*Math.sin(2));
+      const orbits = new Orbits();
+
+      // update slider
+      function updateSlider() {
+        if (document.getElementById("play").innerText == '❚❚') {
+            simTime = simTime + deltaTime;
+            if (simTime > 5) {
+                simTime = 0
+                document.getElementById("play").innerText = '▶'
+            }
+            document.getElementById("slider").value = simTime;
+        }
+      }
+
+      // events
+      document.getElementById("play").addEventListener("click", () => {
+        if (document.getElementById("play").innerText == '❚❚') {
+            document.getElementById("play").innerText = '▶'
+        } else {
+            document.getElementById("play").innerText = '❚❚'
+        }
+      });
+      document.getElementById("slider").addEventListener("input", () => {
+        simTime = Number(document.getElementById("slider").value)
+      })
+
+      // animation loop
+      function animFrame() {
+        requestAnimationFrame(animFrame);
+        onEachStep();
+      }
+
+      function init() {
+        gsap.ticker.lagSmoothing(false);
+        animFrame();
+      }
+
+      window.onload = init;
+
+      function onEachStep() {
+        // time
+        currentTime = Date.now() / 1000;
+        elapseTime = currentTime - startTime;
+        deltaTime = currentTime - prevTime;
+        prevTime = currentTime;
+        // set a hard limit for dt in case of stuttering or tab switching
+        if (deltaTime > 0.02) {
+          deltaTime = 1 / 60;
+        }
+
+        // clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // update
+        updateSlider()
+
+        // draw functions
+        orbits.draw();
+        electron.update();
+        drawProton();
+      }
+    </script>
+  </body>
+</html>

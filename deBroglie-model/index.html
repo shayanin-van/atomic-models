@@ -72,11 +72,7 @@
         text-align: center;
       "
     >
-      <input type="range" id="slider" 
-        min="0"
-        max="1"
-        value="0"
-        step="0.001"></input>
+      <input type="range" id="slider" min="0" max="1" value="0" step="0.001" />
     </div>
 
     <script>
@@ -137,7 +133,7 @@
       // orbits
       class Orbits {
         constructor() {
-          this.r1 = 1.5 / 2;
+          this.r1 = 1.2 / 2;
           this.r2 = 4 / 2;
           this.r3 = 9 / 2;
         }
@@ -187,27 +183,98 @@
       // electron class
       class Electron {
         constructor() {
-            this.curvatureRadius = 9999
+          this.curlAngle = 0;
+          this.detail = 250;
+          this.n1SectL = (2 * Math.PI * orbits.r1) / this.detail;
+          this.n2SectL = (2 * Math.PI * orbits.r2) / this.detail;
+          this.n3SectL = (2 * Math.PI * orbits.r3) / this.detail;
+          this.amplitude = 0.1;
+          this.omega = 3;
+          this.k1 = (2 * Math.PI) / ((2 * Math.PI * orbits.r1) / 1);
+          this.k2 = (2 * Math.PI) / ((2 * Math.PI * orbits.r2) / 2);
+          this.k3 = (2 * Math.PI) / ((2 * Math.PI * orbits.r3) / 3);
         }
 
         draw() {
-            ctx.strokeStyle = "#d47263";
-            ctx.lineWidth = 0.08 * ppcm;
-            // n = 1
-            ctx.beginPath();
-            ctx.moveTo(xCon(-Math.PI*orbits.r1)*ppcm, yCon(-orbits.r1)*ppcm)
-            ctx.lineTo(xCon(Math.PI*orbits.r1)*ppcm, yCon(-orbits.r1)*ppcm)
-            ctx.stroke()
-            // n = 2
-            ctx.beginPath();
-            ctx.moveTo(xCon(-Math.PI*orbits.r2)*ppcm, yCon(-orbits.r2)*ppcm)
-            ctx.lineTo(xCon(Math.PI*orbits.r2)*ppcm, yCon(-orbits.r2)*ppcm)
-            ctx.stroke()
-            // n = 3
-            ctx.beginPath();
-            ctx.moveTo(xCon(-Math.PI*orbits.r3)*ppcm, yCon(-orbits.r3)*ppcm)
-            ctx.lineTo(xCon(Math.PI*orbits.r3)*ppcm, yCon(-orbits.r3)*ppcm)
-            ctx.stroke()
+          ctx.strokeStyle = "#d47263";
+          ctx.lineWidth = 0.08 * ppcm;
+          let angle = document.getElementById("slider").value * 2 * Math.PI;
+          let sectAngle = angle / this.detail;
+          // n = 1
+          ctx.beginPath();
+          ctx.moveTo(xCon(0) * ppcm, yCon(-orbits.r1) * ppcm);
+          let currentAngle1 = 0;
+          let currentX1 = 0;
+          let currentY1 = -orbits.r1;
+          for (let i = 0; i < this.detail; i++) {
+            currentAngle1 = currentAngle1 + sectAngle;
+            currentX1 = currentX1 + this.n1SectL * Math.cos(currentAngle1);
+            currentY1 = currentY1 + this.n1SectL * Math.sin(currentAngle1);
+            let disp =
+              2 *
+              this.amplitude *
+              Math.sin(this.k1 * this.n1SectL * i) *
+              Math.cos(this.omega * currentTime);
+            ctx.lineTo(
+              xCon(
+                currentX1 - disp * Math.sin(currentAngle1 + 0.5 * sectAngle)
+              ) * ppcm,
+              yCon(
+                currentY1 + disp * Math.cos(currentAngle1 + 0.5 * sectAngle)
+              ) * ppcm
+            );
+          }
+          ctx.stroke();
+          // n = 2
+          ctx.beginPath();
+          ctx.moveTo(xCon(0) * ppcm, yCon(-orbits.r2) * ppcm);
+          let currentAngle2 = 0;
+          let currentX2 = 0;
+          let currentY2 = -orbits.r2;
+          for (let i = 0; i < this.detail; i++) {
+            currentAngle2 = currentAngle2 + sectAngle;
+            currentX2 = currentX2 + this.n2SectL * Math.cos(currentAngle2);
+            currentY2 = currentY2 + this.n2SectL * Math.sin(currentAngle2);
+            let disp =
+              2 *
+              this.amplitude *
+              Math.sin(this.k2 * this.n2SectL * i) *
+              Math.cos(this.omega * currentTime);
+            ctx.lineTo(
+              xCon(
+                currentX2 - disp * Math.sin(currentAngle2 + 0.5 * sectAngle)
+              ) * ppcm,
+              yCon(
+                currentY2 + disp * Math.cos(currentAngle2 + 0.5 * sectAngle)
+              ) * ppcm
+            );
+          }
+          ctx.stroke();
+          // n = 3
+          ctx.beginPath();
+          ctx.moveTo(xCon(0) * ppcm, yCon(-orbits.r3) * ppcm);
+          let currentAngle3 = 0;
+          let currentX3 = 0;
+          let currentY3 = -orbits.r3;
+          for (let i = 0; i < this.detail; i++) {
+            currentAngle3 = currentAngle3 + sectAngle;
+            currentX3 = currentX3 + this.n3SectL * Math.cos(currentAngle3);
+            currentY3 = currentY3 + this.n3SectL * Math.sin(currentAngle3);
+            let disp =
+              2 *
+              this.amplitude *
+              Math.sin(this.k3 * this.n3SectL * i) *
+              Math.cos(this.omega * currentTime);
+            ctx.lineTo(
+              xCon(
+                currentX3 - disp * Math.sin(currentAngle3 + 0.5 * sectAngle)
+              ) * ppcm,
+              yCon(
+                currentY3 + disp * Math.cos(currentAngle3 + 0.5 * sectAngle)
+              ) * ppcm
+            );
+          }
+          ctx.stroke();
         }
 
         update() {
@@ -217,8 +284,8 @@
       }
 
       // class instanciation
-      const electron = new Electron();
       const orbits = new Orbits();
+      const electron = new Electron();
 
       // events
 

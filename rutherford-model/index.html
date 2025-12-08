@@ -72,11 +72,7 @@
       "
     >
       <button type="button" id="play">▶</button>
-      <input type="range" id="slider" 
-        min="0"
-        max="5"
-        value="0"
-        step="0.01"></input>
+      <input type="range" id="slider" min="0" max="5" value="0" step="0.01" />
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
@@ -203,11 +199,11 @@
           // velo
           let omegaMultiplier = 4;
           // radius
-          this.r = orbits.r * ((5 - simTime)/(5));
+          this.r = orbits.r * ((5 - simTime) / 5);
           let omega = 1 / this.r;
           // orbiting
-          this.x = this.r * Math.cos(omegaMultiplier*omega*simTime)
-          this.y = this.r * Math.sin(omegaMultiplier*omega*simTime)
+          this.x = this.r * Math.cos(omegaMultiplier * omega * simTime);
+          this.y = this.r * Math.sin(omegaMultiplier * omega * simTime);
 
           // draw
           this.draw();
@@ -215,32 +211,32 @@
       }
 
       // class instanciation
-      const electron = new Electron(4*Math.cos(2), 4*Math.sin(2));
+      const electron = new Electron(4 * Math.cos(2), 4 * Math.sin(2));
       const orbits = new Orbits();
 
       // update slider
       function updateSlider() {
-        if (document.getElementById("play").innerText == '❚❚') {
-            simTime = simTime + deltaTime;
-            if (simTime > 5) {
-                simTime = 0
-                document.getElementById("play").innerText = '▶'
-            }
-            document.getElementById("slider").value = simTime;
+        if (document.getElementById("play").innerText == "❚❚") {
+          simTime = simTime + deltaTime;
+          if (simTime > 5) {
+            simTime = 0;
+            document.getElementById("play").innerText = "▶";
+          }
+          document.getElementById("slider").value = simTime;
         }
       }
 
       // events
       document.getElementById("play").addEventListener("click", () => {
-        if (document.getElementById("play").innerText == '❚❚') {
-            document.getElementById("play").innerText = '▶'
+        if (document.getElementById("play").innerText == "❚❚") {
+          document.getElementById("play").innerText = "▶";
         } else {
-            document.getElementById("play").innerText = '❚❚'
+          document.getElementById("play").innerText = "❚❚";
         }
       });
       document.getElementById("slider").addEventListener("input", () => {
-        simTime = Number(document.getElementById("slider").value)
-      })
+        simTime = Number(document.getElementById("slider").value);
+      });
 
       // animation loop
       function animFrame() {
@@ -270,7 +266,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // update
-        updateSlider()
+        updateSlider();
 
         // draw functions
         orbits.draw();

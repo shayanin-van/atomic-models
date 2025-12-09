@@ -85,9 +85,14 @@
       const ctx = canvas.getContext("2d");
 
       // sizing
-      const phyWidth = 10; // in cm.
-      const phyHeight = 10; // in cm.
+      let phyWidth = 30; // in cm.
+      let phyHeight = phyWidth; // in cm.
       let ppcm = canvas.width / phyWidth; // ppcm = pixel per centimeter
+      let camX = 14.2;
+      let camY = 0;
+
+      let atomOpacity = 0;
+      let textOpacity = 1;
 
       // physics
 
@@ -99,10 +104,10 @@
 
       // coordinate converting function from physical to canvas space
       function xCon(x) {
-        return x + 5;
+        return x + phyWidth / 2 - camX;
       }
       function yCon(y) {
-        return -y + 5;
+        return -y + phyWidth / 2 + camY;
       }
 
       // resize event
@@ -114,8 +119,8 @@
 
       // proton
       function drawProton() {
-        ctx.fillStyle = "#aec7e8";
-        ctx.strokeStyle = "#1f77b4";
+        ctx.fillStyle = "#aec7e8" + map01ToHex(atomOpacity);
+        ctx.strokeStyle = "#1f77b4" + map01ToHex(atomOpacity);
         ctx.lineWidth = 0.06 * ppcm;
         ctx.beginPath();
         ctx.arc(xCon(0) * ppcm, yCon(0) * ppcm, 0.3 * ppcm, 0, 2 * Math.PI);
@@ -123,7 +128,7 @@
         ctx.stroke();
 
         // text
-        ctx.fillStyle = "#1f77b4";
+        ctx.fillStyle = "#1f77b4" + map01ToHex(atomOpacity);
         ctx.font = 0.5 * ppcm + "px mitr";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -139,7 +144,7 @@
         }
 
         drawOrbits() {
-          ctx.strokeStyle = "#888888";
+          ctx.strokeStyle = "#888888" + map01ToHex(atomOpacity);
           ctx.lineWidth = 0.06 * ppcm;
           ctx.setLineDash([10, 12]);
           // r1
@@ -180,6 +185,58 @@
         }
       }
 
+      // text
+      function drawText() {
+        // n = 1
+        ctx.fillStyle = "#888888" + map01ToHex(textOpacity);
+        ctx.strokeStyle = "#888888" + map01ToHex(textOpacity);
+        ctx.lineWidth = 0.06 * ppcm;
+        ctx.setLineDash([5, 5]);
+        ctx.font = 1.4 * ppcm + "px mitr";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText("คลื่นความยาว 1 ลูกพอดี", xCon(1) * ppcm, yCon(10) * ppcm);
+        ctx.beginPath();
+        ctx.moveTo(xCon(2) * ppcm, yCon(9) * ppcm);
+        ctx.lineTo(xCon(2) * ppcm, yCon(0.2) * ppcm);
+        ctx.stroke();
+        // n = 2
+        ctx.fillText("คลื่นความยาว 2 ลูกพอดี", xCon(7) * ppcm, yCon(7) * ppcm);
+        ctx.beginPath();
+        ctx.moveTo(xCon(9) * ppcm, yCon(6) * ppcm);
+        ctx.lineTo(xCon(9) * ppcm, yCon(-1) * ppcm);
+        ctx.stroke();
+        // n = 3
+        ctx.fillText("คลื่นความยาว 3 ลูกพอดี", xCon(13) * ppcm, yCon(4) * ppcm);
+        ctx.beginPath();
+        ctx.moveTo(xCon(17) * ppcm, yCon(3) * ppcm);
+        ctx.lineTo(xCon(17) * ppcm, yCon(-3.6) * ppcm);
+        ctx.stroke();
+      }
+
+      // camera
+      function updateAnimation() {
+        phyWidth = 30 - document.getElementById("slider").value * (30 - 10);
+        camX = 14.2 - document.getElementById("slider").value * (14.2 - 0);
+        camY = 4 - document.getElementById("slider").value * (4 - 0);
+
+        if (document.getElementById("slider").value < 0.7) {
+          atomOpacity = 0;
+        } else {
+          atomOpacity =
+            (document.getElementById("slider").value - 0.7) / (1 - 0.7);
+        }
+
+        if (document.getElementById("slider").value < 0.1) {
+          textOpacity = (0.1 - document.getElementById("slider").value) / 0.1;
+        } else {
+          textOpacity = 0;
+        }
+
+        phyHeight = phyWidth;
+        ppcm = canvas.width / phyWidth;
+      }
+
       // electron class
       class Electron {
         constructor() {
@@ -197,7 +254,7 @@
 
         draw() {
           ctx.strokeStyle = "#d47263";
-          ctx.lineWidth = 0.08 * ppcm;
+          ctx.lineWidth = 2;
           let angle = document.getElementById("slider").value * 2 * Math.PI;
           let sectAngle = angle / this.detail;
           // n = 1
@@ -315,10 +372,32 @@
         // clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        updateAnimation();
+
         // draw functions
         orbits.draw();
         electron.update();
         drawProton();
+        drawText();
+      }
+
+      function map01ToHex(value) {
+        // Ensure the value is within the 0-1 range
+        if (value < 0) value = 0;
+        if (value > 1) value = 1;
+
+        // Scale to 0-255 and round
+        const scaledValue = Math.round(value * 255);
+
+        // Convert to hexadecimal string
+        let hex = scaledValue.toString(16);
+
+        // Pad with a leading zero if necessary
+        if (hex.length === 1) {
+          hex = "0" + hex;
+        }
+
+        return hex;
       }
     </script>
   </body>

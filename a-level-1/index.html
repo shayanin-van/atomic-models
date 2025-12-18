@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Mitr"
+    />
+    <title>Atomic Models</title>
+    <style>
+      body {
+        font-family: "Mitr", sans-serif;
+        color: rgb(114, 114, 114);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      #myCanvas {
+        border: 0px;
+        touch-action: none;
+        background-color: #ffffff;
+        width: 90%;
+        max-width: 360px;
+        aspect-ratio: 1;
+        margin-bottom: 20px;
+      }
+      button {
+        border-radius: 8px;
+        border: 1px solid transparent;
+        padding: 0.3em 0.4em;
+        font-size: 1em;
+        font-weight: 500;
+        font-family: inherit;
+        background-color: #cc785c;
+        color: #ffffff;
+        cursor: pointer;
+        transition: border-color 0.25s;
+        margin: 4px;
+      }
+      button:hover {
+        border-color: #ffffff;
+      }
+      button:focus,
+      button:focus-visible {
+        outline: 8px #ffffff auto -webkit-focus-ring-color;
+      }
+      button:disabled {
+        background-color: #ccc;
+        color: #666;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas"></canvas>
+    <label>กระตุ้นด้วยโฟตอนที่มีพลังงาน</label>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: 260px;
+        text-align: center;
+      "
+    >
+      <button type="button" id="p10eV">10.2 eV</button>
+      <button type="button" id="p11eV">11.2 eV</button>
+      <button type="button" id="p12eV">12.1 eV</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script>
+      // get the canvas element
+      const canvas = document.getElementById("myCanvas");
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      // get the 2D rendering context
+      const ctx = canvas.getContext("2d");
+
+      // sizing
+      const phyWidth = 10; // in cm.
+      const phyHeight = 10; // in cm.
+      let ppcm = canvas.width / phyWidth; // ppcm = pixel per centimeter
+
+      // physics
+
+      // time
+      const startTime = Date.now() / 1000;
+      let prevTime = startTime;
+      let currentTime;
+      let deltaTime;
+
+      // coordinate converting function from physical to canvas space
+      function xCon(x) {
+        return x + 5;
+      }
+      function yCon(y) {
+        return -y + 5;
+      }
+
+      // resize event
+      window.addEventListener("resize", () => {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        ppcm = canvas.width / phyWidth; // ppcm = pixel per centimeter
+      });
+
+      // proton
+      function drawProton() {
+        ctx.fillStyle = "#aec7e8";
+        ctx.strokeStyle = "#1f77b4";
+        ctx.lineWidth = 0.06 * ppcm;
+        ctx.beginPath();
+        ctx.arc(xCon(0) * ppcm, yCon(0) * ppcm, 0.3 * ppcm, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        // text
+        ctx.fillStyle = "#1f77b4";
+        ctx.font = 0.5 * ppcm + "px mitr";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("p", xCon(0) * ppcm, yCon(0.06) * ppcm);
+      }
+
+      // orbit1 BG
+      function drawBG() {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(
+          xCon(0) * ppcm,
+          yCon(0) * ppcm,
+          orbits.r1 * ppcm,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+      }
+
+      // orbits
+      class Orbits {
+        constructor() {
+          this.r1 = 1.2 / 2;
+          this.r2 = 4 / 2;
+          this.r3 = 9 / 2;
+        }
+
+        drawOrbits() {
+          ctx.strokeStyle = "#888888";
+          ctx.lineWidth = 0.06 * ppcm;
+          ctx.setLineDash([10, 12]);
+          ctx.fillStyle = "#888888";
+          ctx.font = 0.36 * ppcm + "px mitr";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          // r1
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r1 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          ctx.fillText(
+            "-13.6 eV (n = 1)",
+            xCon(0) * ppcm,
+            yCon(this.r1 + 0.24) * ppcm
+          );
+          // r2
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r2 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          ctx.fillText(
+            "-3.4 eV (n = 2)",
+            xCon(0) * ppcm,
+            yCon(this.r2 + 0.24) * ppcm
+          );
+          // r3
+          ctx.beginPath();
+          ctx.arc(
+            xCon(0) * ppcm,
+            yCon(0) * ppcm,
+            this.r3 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
+          ctx.fillText(
+            "-1.5 eV (n = 3)",
+            xCon(0) * ppcm,
+            yCon(this.r3 + 0.24) * ppcm
+          );
+
+          ctx.setLineDash([]);
+        }
+
+        drawGaps() {
+          drawEnergyGap(
+            this.r1 * Math.cos(Math.PI / 3.2),
+            this.r1 * Math.sin(Math.PI / 3.2),
+            "#888888",
+            Math.PI / 3.2,
+            this.r2 - this.r1,
+            "10.2 eV"
+          );
+          drawEnergyGap(
+            this.r1 * Math.cos(Math.PI / 6),
+            this.r1 * Math.sin(Math.PI / 6),
+            "#888888",
+            Math.PI / 6,
+            this.r3 - this.r1,
+            "12.1 eV"
+          );
+        }
+
+        draw() {
+          this.drawOrbits();
+        }
+      }
+
+      // electron class
+      class Electron {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.radius = 0.2;
+
+          this.n = 1; // quantum number
+        }
+
+        createPath() {
+          ctx.beginPath();
+          ctx.arc(
+            xCon(this.x) * ppcm,
+            yCon(this.y) * ppcm,
+            this.radius * ppcm,
+            0,
+            2 * Math.PI
+          );
+        }
+
+        draw() {
+          ctx.fillStyle = "#f5b9b0";
+          ctx.strokeStyle = "#d47263";
+          ctx.lineWidth = 0.04 * ppcm;
+          this.createPath();
+          ctx.fill();
+          ctx.stroke();
+
+          // text
+          ctx.fillStyle = "#d47263";
+          ctx.font = 0.5 * ppcm + "px mitr";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("e", xCon(this.x) * ppcm, yCon(this.y) * ppcm);
+        }
+
+        update() {
+          if (this.n == 1) {
+            this.r = orbits.r1;
+            this.v = 1 / this.n;
+          } else if (this.n == 2) {
+            this.r = orbits.r2;
+            this.v = 1 / this.n;
+          } else if (this.n == 3) {
+            this.r = orbits.r3;
+            this.v = 1 / this.n;
+          }
+          // velo
+          let omega = this.v / this.r;
+          let omegaMultiplier = 4;
+          // orbiting
+          this.x = this.r * Math.cos(omegaMultiplier * omega * currentTime);
+          this.y = this.r * Math.sin(omegaMultiplier * omega * currentTime);
+
+          // draw
+          this.draw();
+        }
+      }
+
+      // photon class
+      class Photon {
+        constructor() {
+          this.x = -6;
+          this.y = 6;
+
+          this.eV = 10.2;
+        }
+
+        drawPhoton() {
+          ctx.fillStyle = "#c5b0d5";
+          ctx.strokeStyle = "#222222";
+          ctx.lineWidth = 0.05 * ppcm;
+          ctx.beginPath();
+          ctx.arc(
+            xCon(this.x) * ppcm,
+            yCon(this.y) * ppcm,
+            0.4 * ppcm,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+          ctx.stroke();
+
+          // text
+          ctx.fillStyle = "#222222";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = 0.34 * ppcm + "px mitr";
+          ctx.fillText(this.eV, xCon(this.x) * ppcm, yCon(this.y + 0.1) * ppcm);
+          ctx.font = 0.24 * ppcm + "px mitr";
+          ctx.fillText("eV", xCon(this.x) * ppcm, yCon(this.y - 0.25) * ppcm);
+        }
+
+        update() {
+          this.drawPhoton();
+        }
+      }
+
+      // class instanciation
+      const electron = new Electron(0, 0);
+      const photon = new Photon();
+      const orbits = new Orbits();
+
+      // events
+      document.getElementById("p10eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 10.2;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 2, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
+      document.getElementById("p11eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 11.2;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 1 });
+        gsap.delayedCall(2, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 2 });
+      });
+      document.getElementById("p12eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 12.1;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 3, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
+
+      // animation loop
+      function animFrame() {
+        requestAnimationFrame(animFrame);
+        onEachStep();
+      }
+
+      function init() {
+        gsap.ticker.lagSmoothing(false);
+        animFrame();
+      }
+
+      window.onload = init;
+
+      function onEachStep() {
+        // time
+        currentTime = Date.now() / 1000;
+        elapseTime = currentTime - startTime;
+        deltaTime = currentTime - prevTime;
+        prevTime = currentTime;
+        // set a hard limit for dt in case of stuttering or tab switching
+        if (deltaTime > 0.02) {
+          deltaTime = 1 / 60;
+        }
+
+        // clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw functions
+        photon.update();
+        drawBG();
+        orbits.draw();
+        electron.update();
+        drawProton();
+      }
+
+      function drawEnergyGap(xStart, yStart, color, angle, length, text) {
+        let arrowSize = 0.3;
+        if (length < arrowSize) {
+          arrowSize = length;
+        }
+
+        // line
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.05 * ppcm;
+        ctx.beginPath();
+        ctx.moveTo(xCon(xStart) * ppcm, yCon(yStart) * ppcm);
+        ctx.lineTo(
+          xCon(xStart + (length - arrowSize) * Math.cos(angle)) * ppcm,
+          yCon(yStart + (length - arrowSize) * Math.sin(angle)) * ppcm
+        );
+        ctx.stroke();
+
+        // arrow head
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(
+          xCon(xStart + length * Math.cos(angle)) * ppcm,
+          yCon(yStart + length * Math.sin(angle)) * ppcm
+        );
+        ctx.lineTo(
+          xCon(
+            xStart +
+              (length - arrowSize) * Math.cos(angle) +
+              0.5 * arrowSize * Math.cos(angle + Math.PI / 2)
+          ) * ppcm,
+          yCon(
+            yStart +
+              (length - arrowSize) * Math.sin(angle) +
+              0.5 * arrowSize * Math.sin(angle + Math.PI / 2)
+          ) * ppcm
+        );
+        ctx.lineTo(
+          xCon(
+            xStart +
+              (length - arrowSize) * Math.cos(angle) -
+              0.5 * arrowSize * Math.cos(angle + Math.PI / 2)
+          ) * ppcm,
+          yCon(
+            yStart +
+              (length - arrowSize) * Math.sin(angle) -
+              0.5 * arrowSize * Math.sin(angle + Math.PI / 2)
+          ) * ppcm
+        );
+        ctx.fill();
+
+        // line end
+        ctx.beginPath();
+        ctx.moveTo(
+          xCon(
+            xStart +
+              length * Math.cos(angle) +
+              0.5 * arrowSize * Math.cos(angle + Math.PI / 2)
+          ) * ppcm,
+          yCon(
+            yStart +
+              length * Math.sin(angle) +
+              0.5 * arrowSize * Math.sin(angle + Math.PI / 2)
+          ) * ppcm
+        );
+        ctx.lineTo(
+          xCon(
+            xStart +
+              length * Math.cos(angle) -
+              0.5 * arrowSize * Math.cos(angle + Math.PI / 2)
+          ) * ppcm,
+          yCon(
+            yStart +
+              length * Math.sin(angle) -
+              0.5 * arrowSize * Math.sin(angle + Math.PI / 2)
+          ) * ppcm
+        );
+        ctx.stroke();
+
+        // text
+        if (length < 1) {
+          return;
+        }
+        ctx.font = 0.3 * ppcm + "px mitr";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.save();
+        ctx.translate(
+          xCon(
+            xStart +
+              0.5 * length * Math.cos(angle) +
+              0.34 * Math.cos(angle + Math.PI / 2)
+          ) * ppcm,
+          yCon(
+            yStart +
+              0.5 * length * Math.sin(angle) +
+              0.34 * Math.sin(angle + Math.PI / 2)
+          ) * ppcm
+        );
+        ctx.rotate(-angle);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+    </script>
+  </body>
+</html>

@@ -57,6 +57,20 @@
   </head>
   <body>
     <canvas id="myCanvas"></canvas>
+    <label>กระตุ้นด้วยโฟตอนที่มีพลังงาน</label>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: 260px;
+        text-align: center;
+      "
+    >
+      <button type="button" id="p10eV">10.2 eV</button>
+      <button type="button" id="p11eV">11.2 eV</button>
+      <button type="button" id="p12eV">12.1 eV</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script>
@@ -154,7 +168,11 @@
             2 * Math.PI
           );
           ctx.stroke();
-          ctx.fillText("n = 1", xCon(0) * ppcm, yCon(this.r1 + 0.24) * ppcm);
+          ctx.fillText(
+            "-13.6 eV (n = 1)",
+            xCon(0) * ppcm,
+            yCon(this.r1 + 0.24) * ppcm
+          );
           // r2
           ctx.beginPath();
           ctx.arc(
@@ -165,7 +183,11 @@
             2 * Math.PI
           );
           ctx.stroke();
-          ctx.fillText("n = 2", xCon(0) * ppcm, yCon(this.r2 + 0.24) * ppcm);
+          ctx.fillText(
+            "-3.4 eV (n = 2)",
+            xCon(0) * ppcm,
+            yCon(this.r2 + 0.24) * ppcm
+          );
           // r3
           ctx.beginPath();
           ctx.arc(
@@ -176,7 +198,11 @@
             2 * Math.PI
           );
           ctx.stroke();
-          ctx.fillText("n = 3", xCon(0) * ppcm, yCon(this.r3 + 0.24) * ppcm);
+          ctx.fillText(
+            "-1.5 eV (n = 3)",
+            xCon(0) * ppcm,
+            yCon(this.r3 + 0.24) * ppcm
+          );
 
           ctx.setLineDash([]);
         }
@@ -308,6 +334,54 @@
       const electron = new Electron(0, 0);
       const photon = new Photon();
       const orbits = new Orbits();
+
+      // events
+      document.getElementById("p10eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 10.2;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 2, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
+      document.getElementById("p11eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 11.2;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 1 });
+        gsap.delayedCall(2, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 2 });
+      });
+      document.getElementById("p12eV").addEventListener("click", () => {
+        document.getElementById("p10eV").disabled = true;
+        document.getElementById("p11eV").disabled = true;
+        document.getElementById("p12eV").disabled = true;
+        photon.eV = 12.1;
+        gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
+        gsap.set(electron, { n: 3, delay: 1 });
+        gsap.set(electron, { n: 1, delay: 6 });
+        gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
+        gsap.delayedCall(7, () => {
+          document.getElementById("p10eV").disabled = false;
+          document.getElementById("p11eV").disabled = false;
+          document.getElementById("p12eV").disabled = false;
+        });
+        gsap.set(photon, { x: -6, y: 6, delay: 7 });
+      });
 
       // animation loop
       function animFrame() {

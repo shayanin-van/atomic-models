@@ -336,8 +336,6 @@
       // events
       document.getElementById("p10eV").addEventListener("click", () => {
         document.getElementById("p10eV").disabled = true;
-        document.getElementById("p11eV").disabled = true;
-        document.getElementById("p12eV").disabled = true;
         photon.eV = 10.2;
         gsap.to(photon, { x: 0, y: 0, duration: 1, ease: "none" });
         gsap.set(electron, { n: 2, delay: 1 });
@@ -345,8 +343,6 @@
         gsap.to(photon, { x: 6, y: -6, duration: 1, ease: "none", delay: 6 });
         gsap.delayedCall(7, () => {
           document.getElementById("p10eV").disabled = false;
-          document.getElementById("p11eV").disabled = false;
-          document.getElementById("p12eV").disabled = false;
         });
         gsap.set(photon, { x: -6, y: 6, delay: 7 });
       });
